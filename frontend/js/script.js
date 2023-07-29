@@ -1,8 +1,8 @@
 const tbody = document.querySelector('tbody');
-const addFOrm = document.querySelector('.add-form')
+const addForm = document.querySelector('.add-form')
 const inputTask = document.querySelector('.input-task')
 
-const fetchTask = async () => {
+const fetchTasks = async () => {
     const response = await fetch('http://localhost:3333/tasks');
     const tasks = await response.json()
     return tasks
@@ -26,11 +26,11 @@ const deleteTask = async (id) => {
     await fetch(`http://localhost:3333/tasks/${id}`, {
         method: 'delete'
     })
-
     loadTasks()
 }
 
 const updateTask = async ({ id, title, status }) => {
+
     await fetch(`http://localhost:3333/tasks/${id}`, {
         method: 'put',
         headers: { 'Content-Type': 'application/json' },
@@ -39,27 +39,22 @@ const updateTask = async ({ id, title, status }) => {
 
     loadTasks()
 }
+
 const formatDate = (dateUTC) => {
     const options = { dateStyle: 'long', timeStyle: 'short' }
     const date = new Date(dateUTC).toLocaleString('pt-br', options)
     return date
 }
 
-
-
-
-
-
-
-const createElement = (tag, innerText = '', innerHtml = '') => {
+const createElement = (tag, innerText = '', innerHTML = '') => {
 
     const element = document.createElement(tag)
 
     if (innerText) {
         element.innerText = innerText
     }
-    if (innerHtml) {
-        element.innerHTML = innerHtml
+    if (innerHTML) {
+        element.innerHTML = innerHTML
     }
 
     return element
@@ -79,57 +74,112 @@ const createSelect = (value) => {
     return select
 }
 
+// const createRow = (task) => {
+
+//     const { id, title, created_at, status } = task;
+
+//     const tr = createElement('tr');
+//     const tdTitle = createElement('td', title);
+//     const tdCreatedAt = createElement('td', formatDate(created_at))
+//     const tdStatus = createElement('td')
+//     const tdActions = createElement('td')
+
+//     const select = createSelect(status);
+
+//     const editButton = createElement('button', '', '<span class="material-symbols-outlined">edit</span>')
+//     const deleteButton = createElement('button', '', '<span class="material-symbols-outlined">delete</span>')
+
+//     const editForm = createElement('form')
+//     const editInput = createElement('input')
+
+//     editInput.value = title
+
+//     editForm.appendChild(editInput)
+
+//     editButton.classList.add('btn-action')
+//     deleteButton.classList.add('btn-action')
+
+//     deleteButton.addEventListener('click', () => deleteTask(id))
+
+//     select.addEventListener('change', ({ target }) => updateTask({ ...task, status: target.value }))
+
+//     editButton.addEventListener('click', () => {
+//         tdTitle.innerText = ''
+//         tdTitle.appendChild(editForm)
+//     })
+//     editForm.addEventListener('submit', (event) => {
+//         event.preventDefault()
+
+//         updateTask({ id, title: editInput.value, status })
+//     })
+//     tdStatus.appendChild(select);
+
+//     tdActions.appendChild(editButton)
+//     tdActions.appendChild(deleteButton)
+
+//     tr.appendChild(tdTitle)
+//     tr.appendChild(tdCreatedAt)
+//     tr.appendChild(tdStatus)
+//     tr.appendChild(tdActions)
+
+//     return tr
+
+
+// }
 const createRow = (task) => {
 
     const { id, title, created_at, status } = task;
+
     const tr = createElement('tr');
     const tdTitle = createElement('td', title);
-    const tdCreatedAt = createElement('td', formatDate(created_at))
-    const tdStatus = createElement('td')
-    const tdActions = createElement('td')
+    const tdCreatedAt = createElement('td', formatDate(created_at));
+    const tdStatus = createElement('td');
+    const tdActions = createElement('td');
 
     const select = createSelect(status);
 
-    const editButton = createElement('button', '', '<span class="material-symbols-outlined">edit</span>')
-    const deleteButton = createElement('button', '', '<span class="material-symbols-outlined">delete</span>')
+    select.addEventListener('change', ({ target }) => updateTask({ ...task, status: target.value }));
 
-    const editForm = createElement('form')
-    const editInput = createElement('input')
+    const editButton = createElement('button', '', '<span class="material-symbols-outlined">edit</span>');
+    const deleteButton = createElement('button', '', '<span class="material-symbols-outlined">delete</span>');
 
-    editInput.value = title
+    const editForm = createElement('form');
+    const editInput = createElement('input');
 
-    editForm.appendChild(editInput)
+    editInput.value = title;
+    editForm.appendChild(editInput);
 
-    editButton.classList.add('btn-action')
-    deleteButton.classList.add('btn-action')
-
-    deleteButton.addEventListener('click', () => deleteTask(id))
-    select.addEventListener('change', ({ target }) => updateTask({ ...task, status: target.value }))
-    editButton.addEventListener('click', () => {
-        tdTitle.innerText = ''
-        tdTitle.appendChild(editForm)
-    })
     editForm.addEventListener('submit', (event) => {
-        event.preventDefault()
-        updateTask({ id, title: editInput.value, status })
-    })
+        event.preventDefault();
+
+        updateTask({ id, title: editInput.value, status });
+    });
+
+    editButton.addEventListener('click', () => {
+        tdTitle.innerText = '';
+        tdTitle.appendChild(editForm);
+    });
+
+    editButton.classList.add('btn-action');
+    deleteButton.classList.add('btn-action');
+
+    deleteButton.addEventListener('click', () => deleteTask(id));
+
     tdStatus.appendChild(select);
 
-    tdActions.appendChild(editButton)
-    tdActions.appendChild(deleteButton)
+    tdActions.appendChild(editButton);
+    tdActions.appendChild(deleteButton);
 
-    tr.appendChild(tdTitle)
-    tr.appendChild(tdCreatedAt)
-    tr.appendChild(tdStatus)
-    tr.appendChild(tdActions)
+    tr.appendChild(tdTitle);
+    tr.appendChild(tdCreatedAt);
+    tr.appendChild(tdStatus);
+    tr.appendChild(tdActions);
 
-    return tr
-
-
+    return tr;
 }
 
 const loadTasks = async () => {
-    const tasks = await fetchTask()
+    const tasks = await fetchTasks()
 
     tbody.innerHTML = ''
 
@@ -141,5 +191,5 @@ const loadTasks = async () => {
 }
 
 
-addFOrm.addEventListener('submit', addTask)
+addForm.addEventListener('submit', addTask)
 loadTasks()
