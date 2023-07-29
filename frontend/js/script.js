@@ -1,10 +1,55 @@
 const tbody = document.querySelector('tbody');
+const addFOrm = document.querySelector('.add-form')
+const inputTask = document.querySelector('.input-task')
 
 const fetchTask = async () => {
     const response = await fetch('http://localhost:3333/tasks');
     const tasks = await response.json()
     return tasks
 }
+
+const addTask = async (event) => {
+    event.preventDefault()
+
+    const task = { title: inputTask.value }
+
+    await fetch('http://localhost:3333/tasks', {
+        method: 'post',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(task)
+    })
+    loadTasks()
+    inputTask.value = ''
+}
+
+const deleteTask = async (id) => {
+    await fetch(`http://localhost:3333/tasks/${id}`, {
+        method: 'delete'
+    })
+
+    loadTasks()
+}
+
+const updateTask = async ({ id, title, status }) => {
+    await fetch(`http://localhost:3333/tasks/${id}`, {
+        method: 'put',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, status })
+    })
+
+    loadTasks()
+}
+const formatDate = (dateUTC) => {
+    const options = { dateStyle: 'long', timeStyle: 'short' }
+    const date = new Date(dateUTC).toLocaleString('pt-br', options)
+    return date
+}
+
+
+
+
+
+
 
 const createElement = (tag, innerText = '', innerHtml = '') => {
 
@@ -19,14 +64,9 @@ const createElement = (tag, innerText = '', innerHtml = '') => {
 
     return element
 }
-const task = {
-    id: 1,
-    title: 'testando',
-    created_at: '22/05/2023 14:02',
-    status: 'concluída'
-};
 
-const createSelect = (status) => {
+
+const createSelect = (value) => {
 
     const options = `
     <option value="pendente">pendente</option>
@@ -35,19 +75,16 @@ const createSelect = (status) => {
     `;
 
     const select = createElement('select', '', options);
-    select.value = status
+    select.value = value
     return select
 }
-
-
-
 
 const createRow = (task) => {
 
     const { id, title, created_at, status } = task;
     const tr = createElement('tr');
     const tdTitle = createElement('td', title);
-    const tdCreatedAt = createElement('td', created_at)
+    const tdCreatedAt = createElement('td', formatDate(created_at))
     const tdStatus = createElement('td')
     const tdActions = createElement('td')
 
@@ -56,9 +93,26 @@ const createRow = (task) => {
     const editButton = createElement('button', '', '<span class="material-symbols-outlined">edit</span>')
     const deleteButton = createElement('button', '', '<span class="material-symbols-outlined">delete</span>')
 
+    const editForm = createElement('form')
+    const editInput = createElement('input')
+
+    editInput.value = title
+
+    editForm.appendChild(editInput)
+
     editButton.classList.add('btn-action')
     deleteButton.classList.add('btn-action')
 
+    deleteButton.addEventListener('click', () => deleteTask(id))
+    select.addEventListener('change', ({ target }) => updateTask({ ...task, status: target.value }))
+    editButton.addEventListener('click', () => {
+        tdTitle.innerText = ''
+        tdTitle.appendChild(editForm)
+    })
+    editForm.addEventListener('submit', (event) => {
+        event.preventDefault()
+        updateTask({ id, title: editInput.value, status })
+    })
     tdStatus.appendChild(select);
 
     tdActions.appendChild(editButton)
@@ -69,8 +123,23 @@ const createRow = (task) => {
     tr.appendChild(tdStatus)
     tr.appendChild(tdActions)
 
-    tbody.appendChild(tr)
+    return tr
 
 
 }
-createRow(task)
+
+const loadTasks = async () => {
+    const tasks = await fetchTask()
+
+    tbody.innerHTML = ''
+
+    tasks.forEach(task => {
+        const tr = createRow(task)
+
+        tbody.appendChild(tr)
+    });
+}
+
+
+addFOrm.addEventListener('submit', addTask)
+loadTasks()
